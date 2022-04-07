@@ -8,8 +8,15 @@ export function setupInput(): PromptForString {
     output: process.stdout,
   });
 
-  const askQuestion: PromptForString = util
-    .promisify(rl.question)
-    .bind(rl) as unknown as PromptForString; //TODO: bad
+  type StandardCallbackForm = (err: string | null, answer: string) => void;
+  type CorrectedQuestionForm = (
+    prompt: string,
+    callback: StandardCallbackForm,
+  ) => void;
+
+  const betterQuestion: CorrectedQuestionForm = (prompt, standardCallback) =>
+    rl.question(prompt, (answer) => standardCallback(null, answer));
+
+  const askQuestion = util.promisify(betterQuestion).bind(rl);
   return askQuestion;
 }
